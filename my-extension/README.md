@@ -1,53 +1,51 @@
 # UI FACECARD
 
-UI FACECARD is a Chrome extension built to enhance web UI inspection with a polished popup facecard interface.
+UI FACECARD is a Chrome extension designed for quick UI inspection and layout debugging directly in the browser.
 
-It helps developers and designers quickly understand page structure, selected elements, and visual measurements without leaving the browser.
+## Features
+- Adds a live UI debugger panel to inspect page elements.
+- Shows element details such as tag, ID, class, text, size, background color, text color, font, font weight, font size, and box model values.
+- Displays measurement guides and spacing information for selected elements.
+- Includes a polished popup interface with a toggle button.
+- Works as a lightweight developer tool for designers and frontend developers.
 
-## What this extension does
+## Author
+UI FACECARD
+- [Project Repository](https://github.com)
 
-- Injects a live UI debugger overlay into web pages on demand.
-- Lets users select a DOM element and inspect tag, ID, class, text, size, background, text color, and font.
-- Displays layout measurements and element metadata in the side drawer.
-- Includes a popup UI with a facecard image and a toggle button.
-- Provides a lightweight UI debugging workflow without AI or chat functionality.
+## Requirements
+### Knowledge
+- HTML
+- CSS
+- JavaScript
+- Chrome Extension APIs
 
-## Key files
+### Tools
+- Google Chrome Browser
+- VS Code or any code editor
 
-- `content.js` - main content script for overlay creation, element selection, and metadata display.
-- `assets/styles/content.css` - styling for the debugger panel, drawer, footer, and error states.
-- `popup/popup.html` - popup UI with the facecard and toggle button.
-- `manifest.json` - extension configuration, including the icon settings.
-- `icons/ON.svg` - extension icon used in the browser toolbar and manifest.
+## Setup Instructions
+### For Developers
+1. Clone or download this project.
+2. Open Google Chrome.
+3. Go to chrome://extensions/.
+4. Enable Developer Mode.
+5. Click Load Unpacked.
+6. Select the project folder and confirm.
+7. Reload the extension after changes to see updates.
 
-## Setup
+### For End Users
+1. Install the extension in Chrome.
+2. Open any webpage.
+3. Click the extension icon to open the popup.
+4. Toggle the UI debugger to inspect elements and view layout details.
 
-1. Open a terminal in `my-extension`.
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Load the extension as an unpacked extension in Chrome/Edge using the `my-extension` folder.
+## Project Structure
+- content.js - main logic for overlay, selection, and drawer metadata
+- assets/styles/content.css - styling for the debugging UI
+- popup/popup.html - popup interface
+- manifest.json - extension configuration
+- icons/ON.svg - extension icon
 
-## Usage
-
-1. Click the extension icon to open the popup.
-2. The popup displays the `UI FACECARD` face image from `assets/images/image.png`.
-3. Click **Toggle UI Debugger** to enable or disable the overlay on the current page.
-4. Use the page overlay to inspect elements and view metadata for selected UI components.
-
-## Icon support
-
-- The extension now includes `icons/ON.svg`.
-- `manifest.json` uses this icon for the browser toolbar and extension listing.
-- `action.default_icon` and `icons` entries are configured for 16, 32, 48, and 128 sizes.
-
-## Environment config
-
-- This extension no longer uses AI or OpenRouter.
-- There is no `.env` or API configuration required.
-
-## Notes
-
-- The popup uses a local facecard image at `../assets/images/image.png`.
-- If you want to replace the icon, update `icons/ON.svg` and the manifest references.
+## License
+Please refer to the LICENSE file.
