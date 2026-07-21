@@ -1,4 +1,51 @@
-/* .ui-debugger, */
-.ui-debugger * :hover {
-    border: 1px solid red !important;
+/* Measurement Lines */
+.ui-debugger-line {
+    position: fixed;
+    pointer-events: none;
+    z-index: 2147483647;
+    background: #ff4444;
 }
+
+.ui-debugger-line-vertical {
+    width: 2px;
+}
+
+.ui-debugger-line-horizontal {
+    height: 2px;
+}
+
+/* Distance Labels */
+.ui-debugger-label {
+    position: fixed;
+    pointer-events: none;
+    z-index: 2147483648;
+    background: #ff4444;
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-family: monospace;
+    white-space: nowrap;
+    line-height: 1.4;
+}
+
+/* Overlay Box for Width/Height */
+#debugger-overlay {
+    position: fixed;
+    background: #1e90ff;
+    color: #fff;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: monospace;
+    pointer-events: none;
+    z-index: 2147483649;
+    display: none;
+}
+
+/* Hover border for elements */
+.ui-debugger * :hover {
+    border: 1px solid #1e90ff !important;
+    outline: none !important;
+}
+
