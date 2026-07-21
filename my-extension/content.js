@@ -1,7 +1,7 @@
 console.log("Content script loaded");
 const overlay = document.createElement("div");
 
-overlay.style.position = `
+overlay.style.cssText = `
     position: fixed;
     background: #1e90ff;
     color: #fff;
