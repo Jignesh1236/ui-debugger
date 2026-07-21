@@ -20,6 +20,7 @@ UI FACECARD
 
 ## Socials
 - [Instagram](https://www.instagram.com/p/DbDk4stiNgT/)
+- [LinkedIn](https://www.linkedin.com/posts/navendra-pandey-6745b1418_nyccodequest2026-codequest-hackathon-ugcPost-7485320618909925377-qqrI/?utm_source=share&utm_medium=member_android&rcm=ACoAAGopwXgB2C8olb3sZGVuYiDz7nPWGPoGGx0)
 - [Reddit Hackathon](https://www.reddit.com/r/hackathon/s/ce4ez1R6nm)
 - [Reddit Hackathon Post](https://www.reddit.com/r/hackathon/s/T5fOpdTqZZ)
 - [Reddit Hackathon Update](https://www.reddit.com/r/hackathon/s/rSbwFyKMhX)
