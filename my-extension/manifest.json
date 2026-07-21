@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "ui dibugger",
+  "version": "1.0",
+  "description": "A simple tool to make ui understandable. and simple dibug tool.",
+  "permissions": ["activeTab"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icon.png"
+  }
+}
