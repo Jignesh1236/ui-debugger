@@ -77,7 +77,8 @@
 .debugger-drawer-toggle {
     border: none;
     background-image: url(../images/drawer-toggle.png);
-    background-size: contain;
+    background-size: cover;
+    background-position: center;
     background-repeat: no-repeat;
     color: white;
     border-radius: 4px;
