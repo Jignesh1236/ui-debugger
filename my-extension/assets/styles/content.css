@@ -32,20 +32,113 @@
 /* Overlay Box for Width/Height */
 #debugger-overlay {
     position: fixed;
-    background: #1e90ff;
-    color: #fff;
-    padding: 3px 8px;
-    border-radius: 4px;
+    background: #111827;
+    color: #f9fafb;
+    padding: 6px 8px;
+    border-radius: 6px;
     font-size: 12px;
     font-family: monospace;
-    pointer-events: none;
+    pointer-events: auto;
     z-index: 2147483649;
     display: none;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+    line-height: 1.4;
+    max-width: 260px;
+}
+
+.ui-debugger-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 280px;
+    height: 100vh;
+    background: #111827;
+    color: #f9fafb;
+    transform: translateX(100%);
+    transition: transform 0.2s ease;
+    z-index: 2147483648;
+    display: none;
+    box-shadow: -4px 0 18px rgba(0,0,0,0.25);
+}
+
+.ui-debugger-drawer.open {
+    transform: translateX(0);
+}
+
+.debugger-drawer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.12);
+    font-size: 13px;
+}
+
+.debugger-drawer-toggle {
+    border: none;
+    background-image: url(../images/drawer-toggle.png);
+    background-size: contain;
+    background-repeat: no-repeat;
+    color: white;
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+}
+
+.debugger-drawer-content {
+    padding: 10px 12px;
+    overflow-y: auto;
+    height: calc(100vh - 46px);
+    font-size: 12px;
+    font-family: monospace;
+}
+
+.debugger-drawer-item {
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    cursor: pointer;
+    word-break: break-word;
+}
+
+.debugger-drawer-item:hover {
+    color: #93c5fd;
+}
+
+.debugger-drawer-item.copied {
+    color: #34d399;
+}
+
+.debugger-overlay-title {
+    font-weight: 700;
+    margin-bottom: 4px;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    padding-bottom: 4px;
+}
+
+.debugger-overlay-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    cursor: pointer;
+    padding: 2px 0;
+}
+
+.debugger-overlay-row:hover {
+    color: #93c5fd;
+}
+
+.debugger-overlay-value {
+    text-align: right;
+    word-break: break-all;
+}
+
+.debugger-overlay-row.copied {
+    color: #34d399;
 }
 
 /* Hover border for elements */
 .ui-debugger * :hover {
-    border: 1px solid #1e90ff !important;
+    border: 0.2px solid #2491ff !important;
     outline: none !important;
 }
 
