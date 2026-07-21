@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "ui dibugger",
+  "name": "ui debugger",
   "version": "1.0",
-  "description": "A simple tool to make ui understandable. and simple dibug tool.",
+  "description": "A simple tool to make ui understandable. and simple debugger tool.",
   "permissions": ["activeTab"],
   "action": {
     "default_popup": "popup.html",
