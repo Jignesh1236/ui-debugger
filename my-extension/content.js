@@ -26,6 +26,68 @@ drawerContent.className = "debugger-drawer-content";
 drawer.appendChild(drawerHeader);
 drawer.appendChild(drawerContent);
 
+// Persistent footer for AI chat / prompt area (won't be replaced on updates)
+const drawerFooter = document.createElement("div");
+drawerFooter.className = "debugger-drawer-footer";
+
+// AI prompt container
+const aiContainer = document.createElement("div");
+aiContainer.className = "debugger-ai";
+
+const aiTextarea = document.createElement("textarea");
+aiTextarea.id = "debugger-ai-prompt";
+aiTextarea.placeholder = `Ask AI...\nExample:\n- Make this button modern\n- Change primary color to blue\n- Improve accessibility\n- Make it mobile friendly`;
+
+const aiSend = document.createElement("button");
+aiSend.id = "debugger-ai-send";
+aiSend.textContent = "✨ Generate";
+
+aiContainer.appendChild(aiTextarea);
+aiContainer.appendChild(aiSend);
+
+// Quick actions
+const quickContainer = document.createElement("div");
+quickContainer.className = "debugger-ai-quick";
+const quickPrompts = [
+  "Improve UI",
+  "Make Accessible",
+  "Improve Contrast",
+  "Mobile Responsive",
+  "Modern Design",
+  "Tailwind Version",
+  "CSS Variables",
+  "Dark Mode",
+];
+quickPrompts.forEach(function(q) {
+  const btn = document.createElement("button");
+  btn.className = "debugger-ai-quick-btn";
+  btn.textContent = q;
+  btn.setAttribute('data-prompt', q);
+  quickContainer.appendChild(btn);
+});
+
+// Response area and copy
+const responseWrap = document.createElement('div');
+responseWrap.className = 'debugger-ai-response-wrap';
+const responseArea = document.createElement('pre');
+responseArea.id = 'debugger-ai-response';
+responseArea.className = 'debugger-ai-response';
+responseArea.textContent = '';
+const copyResponse = document.createElement('button');
+copyResponse.className = 'debugger-ai-copy';
+copyResponse.textContent = 'Copy';
+responseWrap.appendChild(responseArea);
+responseWrap.appendChild(copyResponse);
+
+drawerFooter.appendChild(aiContainer);
+drawerFooter.appendChild(quickContainer);
+drawerFooter.appendChild(responseWrap);
+
+drawer.appendChild(drawerFooter);
+
+// Track last selected element info so prompt can be built without resetting footer
+let lastSelectedInfo = null;
+
 // Lines (red measurement lines from element to viewport edges)
 const topLine = document.createElement("div");
 topLine.className = "ui-debugger-line ui-debugger-line-vertical";
@@ -137,7 +199,101 @@ function updateDrawer(target) {
   ].join("");
 
   setDrawerVisible(true);
+
+  // Save structured info for AI prompt builder
+  lastSelectedInfo = {
+    tagName,
+    idValue,
+    classValue,
+    textValue,
+    sizeValue,
+    bgColor,
+    textColor,
+    fontValue,
+  };
 }
+
+// Build prompt using last selected element and user input
+function buildPrompt(userRequest) {
+  const info = lastSelectedInfo || {};
+  const prompt = `\nYou are an expert UI/UX engineer.\n\nSelected Element\n\nTag: ${info.tagName || '-'}\nID: ${info.idValue || '-'}\nClass: ${info.classValue || '-'}\nText: ${info.textValue || '-'}\nSize: ${info.sizeValue || '-'}\nBackground: ${info.bgColor || '-'}\nText Color: ${info.textColor || '-'}\nFont: ${info.fontValue || '-'}\n\nUser Request:\n${userRequest || ''}\n\nReturn only HTML and CSS changes.\n`;
+  return prompt;
+}
+
+// Call Pollinations API
+async function generateAI(prompt) {
+  if (!prompt) return;
+
+  responseArea.textContent = "Generating...";
+
+  try {
+    const primaryUrl = `https://text.pollinations.ai/${encodeURIComponent(prompt)}`;
+    const fallbackUrl = `https://gen.pollinations.ai/text/${encodeURIComponent(prompt)}`;
+
+    // Try primary endpoint first
+    let res = await fetch(primaryUrl);
+
+    // If primary returns 402 or other non-ok, try fallback
+    if (res.status === 402 || !res.ok) {
+      try {
+        const fallbackRes = await fetch(fallbackUrl);
+        if (fallbackRes.ok) {
+          const fallbackText = await fallbackRes.text();
+          responseArea.classList.remove('error');
+          responseArea.textContent = fallbackText;
+          return;
+        }
+
+        // If fallback also indicates payment required, show clear message
+        if (fallbackRes.status === 402 || res.status === 402) {
+          responseArea.classList.add('error');
+          responseArea.textContent = 'Payment required (HTTP 402). Please register or upgrade at auth.pollinations.ai to continue.';
+          return;
+        }
+
+        throw new Error(`Primary HTTP ${res.status}, fallback HTTP ${fallbackRes.status}`);
+      } catch (e) {
+        throw e;
+      }
+    }
+
+    // Primary succeeded
+    const text = await res.text();
+    responseArea.classList.remove('error');
+    responseArea.textContent = text;
+
+  } catch (err) {
+    console.error(err);
+    responseArea.textContent = err.message;
+  }
+}
+
+// Event handlers for AI UI
+aiSend.addEventListener('click', function() {
+  const userReq = aiTextarea.value || '';
+  const prompt = buildPrompt(userReq);
+  generateAI(prompt);
+});
+
+quickContainer.addEventListener('click', function(e) {
+  const btn = e.target.closest('.debugger-ai-quick-btn');
+  if (!btn) return;
+  const q = btn.getAttribute('data-prompt') || btn.textContent;
+  // insert as user request and generate
+  aiTextarea.value = q;
+  const prompt = buildPrompt(q);
+  generateAI(prompt);
+});
+
+copyResponse.addEventListener('click', function() {
+  const text = responseArea.textContent || '';
+  if (!text) return;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).catch(function() {});
+  } else {
+    fallbackCopyText(text);
+  }
+});
 
 function updateOverlayBox(event) {
   if (!document.body.classList.contains("ui-debugger")) {

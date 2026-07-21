@@ -4,6 +4,7 @@
     pointer-events: none;
     z-index: 2147483647;
     background: #ff4444;
+    opacity: 0.50;
 }
 
 .ui-debugger-line-vertical {
@@ -20,7 +21,7 @@
     pointer-events: none;
     z-index: 2147483648;
     background: #ff4444;
-    color: #fff;
+    display: inline-block;
     padding: 2px 6px;
     border-radius: 3px;
     font-size: 11px;
@@ -31,6 +32,7 @@
 
 /* Overlay Box for Width/Height */
 #debugger-overlay {
+    
     position: fixed;
     background: #000000;
     color: #f9fafb;
@@ -52,14 +54,21 @@
     right: 0;
     width: 280px;
     height: 100vh;
-    /* Background image for the drawer. Keep a fallback color and ensure
-       the image displays correctly across environments. */
-    background-image: url(../images/s.jpg);
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center;
-    background-color: #000000; /* fallback if image fails to load */
-    color: #f9fafb;
+    background:
+        radial-gradient(
+            ellipse at bottom,
+            rgba(255,255,255,0.18) 0%,
+            rgba(255,255,255,0.08) 18%,
+            rgba(255,255,255,0) 40%
+        ),
+        linear-gradient(
+            to bottom,
+            #000000 0%,
+            #03071d 28%,
+            #0b1c72 68%,
+            #2d7de8 82%,
+            #82bfff 100%
+        );    color: #f9fafb;
     transform: translateX(100%);
     transition: transform 0.2s ease;
     z-index: 2147483648;
@@ -92,7 +101,9 @@
 .debugger-drawer-content {
     padding: 10px 12px;
     overflow-y: auto;
-    height: calc(100vh - 46px);
+    flex: 1 1 auto;
+    /* reserve space for footer using viewport height so footer remains pinned */
+    padding-bottom: calc(28vh + 20px);
     font-size: 12px;
     font-family: monospace;
 }
@@ -144,5 +155,103 @@
 .ui-debugger * :hover {
     border: 0.2px solid #2491ff !important;
     outline: none !important;
+}
+
+/* AI Drawer Footer */
+.debugger-drawer-footer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0; /* pinned to bottom */
+    padding: 10px 12px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    background: linear-gradient(180deg, rgba(0,0,0,0.06), rgba(0,0,0,0.12));
+    width: 100%;
+    box-sizing: border-box;
+    height: 28vh; /* footer height fixed relative to viewport */
+    min-height: 120px;
+    max-height: 48vh;
+    overflow-y: auto; /* allow scrolling inside footer when content grows */
+}
+
+.debugger-ai {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+}
+
+.debugger-ai textarea#debugger-ai-prompt {
+    flex: 1 1 auto;
+    min-height: 64px;
+    max-height: 160px;
+    resize: vertical;
+    padding: 8px;
+    background: rgba(255,255,255,0.04);
+    color: #f9fafb;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 12px;
+}
+
+.debugger-ai button#debugger-ai-send {
+    background: linear-gradient(180deg,#2563eb,#1e40af);
+    color: #fff;
+    border: none;
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.debugger-ai-quick {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.debugger-ai-quick-btn {
+    background: rgba(255,255,255,0.04);
+    color: #f9fafb;
+    border: 1px solid rgba(255,255,255,0.03);
+    padding: 6px 8px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.debugger-ai-response-wrap {
+    margin-top: 8px;
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+}
+
+.debugger-ai-response {
+    flex: 1 1 auto;
+    background: rgba(0,0,0,0.6);
+    color: #e6eef8;
+    padding: 8px;
+    border-radius: 6px;
+    max-height: 220px;
+    overflow: auto;
+    font-family: monospace;
+    font-size: 12px;
+    white-space: pre-wrap;
+}
+
+.debugger-ai-response.error {
+    background: rgba(139, 0, 0, 0.85);
+    color: #fff7f7;
+    border: 1px solid rgba(255, 120, 120, 0.25);
+}
+
+.debugger-ai-copy {
+    background: transparent;
+    color: #93c5fd;
+    border: 1px solid rgba(255,255,255,0.04);
+    padding: 6px 8px;
+    border-radius: 6px;
+    cursor: pointer;
 }
 
