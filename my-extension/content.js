@@ -1,7 +1,10 @@
 function onOff() {
-    if (document.querySelector('*').classList.contains('ui-debugger')) {
-        document.querySelector('*').classList.remove('ui-debugger');
-    } else {
-        document.querySelector('*').classList.add('ui-debugger');
-    }
+    document.querySelector('body').classList.toggle('ui-debugger');
+    console.log("Content script loaded and ready to receive messages.");
 }
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === "toggleDebugger") {
+        onOff();
+    }
+});

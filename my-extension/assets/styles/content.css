@@ -1,0 +1,4 @@
+.ui-debugger,
+.ui-debugger * {
+    border: 1px solid red !important;
+}
