@@ -1,9 +1,11 @@
+console.log("Content script loaded");
+
 function onOff() {
-    document.querySelector('body').classList.toggle('ui-debugger');
-    console.log("Content script loaded and ready to receive messages.");
+    document.body.classList.toggle("ui-debugger");
+    console.log("Toggled");
 }
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message) => {
     if (message.action === "toggleDebugger") {
         onOff();
     }
