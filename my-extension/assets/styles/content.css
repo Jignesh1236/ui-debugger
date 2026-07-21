@@ -1,4 +1,4 @@
-.ui-debugger,
-.ui-debugger * {
+/* .ui-debugger, */
+.ui-debugger * :hover {
     border: 1px solid red !important;
 }
