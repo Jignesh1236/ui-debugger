@@ -117,8 +117,7 @@ function setDrawerVisible(isVisible) {
   }
 }
 
-function updateDrawer(target) {
-  const computedStyle = window.getComputedStyle(target);
+function getElementDetailValue(target, computedStyle) {
   const tagName = target.tagName || "DIV";
   const idValue = target.id || "-";
   const classValue = target.className || "-";
@@ -127,16 +126,111 @@ function updateDrawer(target) {
   const bgColor = computedStyle.backgroundColor || "transparent";
   const textColor = computedStyle.color || "inherit";
   const fontValue = computedStyle.fontFamily || "inherit";
+  const positionValue = computedStyle.position || "static";
+  const displayValue = computedStyle.display || "block";
+
+  const imageValue = (() => {
+    if (tagName === "IMG") {
+      return target.getAttribute("src") || target.getAttribute("data-src") || "-";
+    }
+
+    const bgImage = computedStyle.backgroundImage;
+    if (bgImage && bgImage !== "none") {
+      return bgImage;
+    }
+
+    const imageElement = target.querySelector("img");
+    if (imageElement) {
+      return imageElement.getAttribute("src") || imageElement.getAttribute("data-src") || "-";
+    }
+
+    return "-";
+  })();
+
+  const linkValue = (() => {
+    const anchor = target.closest("a");
+    if (anchor) {
+      return anchor.getAttribute("href") || "-";
+    }
+
+    if (tagName === "A") {
+      return target.getAttribute("href") || "-";
+    }
+
+    return "-";
+  })();
+
+  const marginValue = [
+    computedStyle.marginTop,
+    computedStyle.marginRight,
+    computedStyle.marginBottom,
+    computedStyle.marginLeft
+  ].join(" ");
+
+  const paddingValue = [
+    computedStyle.paddingTop,
+    computedStyle.paddingRight,
+    computedStyle.paddingBottom,
+    computedStyle.paddingLeft
+  ].join(" ");
+
+  const borderValue = `${computedStyle.borderTopWidth} ${computedStyle.borderTopStyle} ${computedStyle.borderTopColor}`;
+
+  return {
+    tagName,
+    idValue,
+    classValue,
+    textValue,
+    sizeValue,
+    bgColor,
+    textColor,
+    fontValue,
+    positionValue,
+    displayValue,
+    imageValue,
+    linkValue,
+    marginValue,
+    paddingValue,
+    borderValue
+  };
+}
+
+function createDrawerRow(label, value) {
+  return `<div class="debugger-drawer-item" data-copy-value="${escapeHtml(value)}"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(value)}</div>`;
+}
+
+function updateDrawer(target) {
+  const computedStyle = window.getComputedStyle(target);
+  const details = getElementDetailValue(target, computedStyle);
 
   drawerContent.innerHTML = [
-    `<div class="debugger-drawer-item" data-copy-value="${escapeHtml(tagName)}"><strong>Tag:</strong> ${escapeHtml(tagName)}</div>`,
-    `<div class="debugger-drawer-item" data-copy-value="${escapeHtml(idValue)}"><strong>ID:</strong> ${escapeHtml(idValue)}</div>`,
-    `<div class="debugger-drawer-item" data-copy-value="${escapeHtml(classValue)}"><strong>Class:</strong> ${escapeHtml(classValue)}</div>`,
-    `<div class="debugger-drawer-item" data-copy-value="${escapeHtml(textValue)}"><strong>Text:</strong> ${escapeHtml(textValue)}</div>`,
-    `<div class="debugger-drawer-item" data-copy-value="${escapeHtml(sizeValue)}"><strong>Size:</strong> ${escapeHtml(sizeValue)}</div>`,
-    `<div class="debugger-drawer-item" data-copy-value="${escapeHtml(bgColor)}"><strong>BG:</strong> ${escapeHtml(bgColor)}</div>`,
-    `<div class="debugger-drawer-item" data-copy-value="${escapeHtml(textColor)}"><strong>Text Color:</strong> ${escapeHtml(textColor)}</div>`,
-    `<div class="debugger-drawer-item" data-copy-value="${escapeHtml(fontValue)}"><strong>Font:</strong> ${escapeHtml(fontValue)}</div>`
+    `<div class="debugger-drawer-section">`,
+    `<div class="debugger-drawer-section-title">Basic</div>`,
+    createDrawerRow("Tag", details.tagName),
+    createDrawerRow("ID", details.idValue),
+    createDrawerRow("Class", details.classValue),
+    createDrawerRow("Text", details.textValue),
+    createDrawerRow("Size", details.sizeValue),
+    createDrawerRow("Position", details.positionValue),
+    createDrawerRow("Display", details.displayValue),
+    `</div>`,
+    `<div class="debugger-drawer-section">`,
+    `<div class="debugger-drawer-section-title">Appearance</div>`,
+    createDrawerRow("BG", details.bgColor),
+    createDrawerRow("Text Color", details.textColor),
+    createDrawerRow("Font", details.fontValue),
+    `</div>`,
+    `<div class="debugger-drawer-section">`,
+    `<div class="debugger-drawer-section-title">Media & Link</div>`,
+    createDrawerRow("Image", details.imageValue),
+    createDrawerRow("Link", details.linkValue),
+    `</div>`,
+    `<div class="debugger-drawer-section">`,
+    `<div class="debugger-drawer-section-title">Box Model</div>`,
+    createDrawerRow("Margin", details.marginValue),
+    createDrawerRow("Padding", details.paddingValue),
+    createDrawerRow("Border", details.borderValue),
+    `</div>`
   ].join("");
 
   setDrawerVisible(true);

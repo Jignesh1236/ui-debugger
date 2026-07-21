@@ -108,11 +108,32 @@
     font-family: monospace;
 }
 
+.debugger-drawer-section {
+    margin-bottom: 10px;
+    padding: 8px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 6px;
+}
+
+.debugger-drawer-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #93c5fd;
+    margin-bottom: 6px;
+}
+
 .debugger-drawer-item {
-    padding: 6px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
     cursor: pointer;
     word-break: break-word;
+}
+
+.debugger-drawer-item:last-child {
+    border-bottom: none;
 }
 
 .debugger-drawer-item:hover {
