@@ -1,12 +1,23 @@
 {
   "manifest_version": 3,
-  "name": "ui debugger",
+  "name": "UI FACECARD",
   "version": "1.0",
   "description": "A simple tool to make ui understandable and simple debugger tool.",
-  "permissions": ["activeTab", "tabs"],
-  "host_permissions": ["<all_urls>"],
+  "permissions": ["activeTab"],
   "action": {
-    "default_popup": "popup/popup.html"
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "assets/images/image.png",
+      "32": "assets/images/image.png",
+      "48": "assets/images/image.png",
+      "128": "assets/images/image.png"
+    }
+  },
+  "icons": {
+    "16": "assets/images/image.png",
+    "32": "assets/images/image.png",
+    "48": "assets/images/image.png",
+    "128": "assets/images/image.png"
   },
   "content_scripts": [
     {
