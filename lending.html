@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI FACECARD — Browser UI Debugger</title>
+    <meta name="description" content="UI FACECARD is a Chrome extension for quick UI inspection. Click any element and instantly see its tag, classes, colors, fonts, and box model — right on the page.">
+    <link href="https://fonts.googleapis.com/css2?family=Varela+Round&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        if (typeof marked !== 'undefined') {
+            marked.setOptions({ breaks: true, gfm: true });
+        }
+    </script>
+    <style>
+        :root {
+            --glass-bg: rgba(0, 0, 0, 0.35);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --accent: #a78bfa;
+            --accent2: #7c3aed;
+        }
+        * { box-sizing: border-box; }
+        html, body {
+            margin: 0; padding: 0;
+            width: 100%; overflow-x: hidden;
+            background: #0b0b0d;
+            color: #ffffff;
+            font-family: 'Varela Round', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            letter-spacing: 0.3px;
+            scroll-behavior: smooth;
+        }
+        a { color: inherit; }
+
+        /* ---------- Hero ---------- */
+        .hero {
+            position: relative;
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            overflow: hidden;
+            background: radial-gradient(ellipse at 30% 20%, rgba(124,58,237,0.18) 0%, transparent 60%),
+                        radial-gradient(ellipse at 75% 70%, rgba(99,102,241,0.12) 0%, transparent 55%),
+                        #0b0b0d;
+        }
+        .hero::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.2) 55%, #0b0b0d 100%);
+            z-index: 1;
+        }
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 900px;
+            padding: 0 24px;
+        }
+        h1.hero-title {
+            font-size: clamp(32px, 6vw, 58px);
+            font-weight: 900;
+            line-height: 1.15;
+            margin: 0 0 20px 0;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.6);
+        }
+        h1.hero-title span {
+            background: linear-gradient(135deg, #a78bfa, #818cf8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        p.hero-sub {
+            font-size: clamp(15px, 2.2vw, 19px);
+            opacity: 0.85;
+            line-height: 1.6;
+            max-width: 600px;
+            margin: 0 auto 36px auto;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+        }
+        .hero-ctas {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 48px;
+        }
+        .btn {
+            font-family: inherit;
+            font-size: 16px;
+            padding: 14px 30px;
+            border-radius: 30px;
+            border: 1px solid var(--glass-border);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            transition: all 0.25s ease;
+            white-space: nowrap;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            color: #fff;
+            box-shadow: 0 8px 24px rgba(124,58,237,0.4);
+            border: none;
+        }
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 28px rgba(124,58,237,0.6);
+        }
+        .btn-ghost {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+        }
+        .btn-ghost:hover {
+            background: rgba(0,0,0,0.5);
+            transform: translateY(-3px);
+        }
+
+        /* Mini stats */
+        .mini-popup {
+            position: relative;
+            display: flex;
+            gap: 12px;
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border);
+            border-radius: 22px;
+            padding: 18px 22px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4), rgba(255,255,255,0.08) 0 0 0 1px inset;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .mini-stat { flex: 1; text-align: center; padding: 0 10px; }
+        .mini-stat .label { font-size: 12px; opacity: 0.75; margin-bottom: 6px; }
+        .mini-stat .value { font-size: clamp(20px, 4vw, 26px); font-weight: bold; letter-spacing: 1px; text-shadow: 0 2px 8px rgba(0,0,0,0.6); color: var(--accent); }
+        .mini-divider { width: 1px; background: rgba(255,255,255,0.15); }
+
+        /* ---------- Sections ---------- */
+        section:not(.hero) {
+            width: 100%;
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 90px clamp(24px, 4vw, 64px);
+        }
+        .section-eyebrow {
+            text-align: center;
+            color: var(--accent);
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+            font-weight: bold;
+        }
+        h2.section-title {
+            text-align: center;
+            font-size: clamp(26px, 4vw, 38px);
+            font-weight: 900;
+            margin: 0 0 16px 0;
+        }
+        p.section-sub {
+            text-align: center;
+            opacity: 0.75;
+            max-width: 620px;
+            margin: 0 auto 56px auto;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        /* Expandable cards */
+        .expandable-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease, max-width 0.3s ease;
+            overflow: hidden;
+        }
+        .expandable-card:hover {
+            background: rgba(255,255,255,0.07);
+            border-color: rgba(255,255,255,0.18);
+        }
+        .expandable-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .expandable-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .expandable-icon {
+            width: 40px; height: 40px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(99,102,241,0.25));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: var(--accent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .expandable-card.active .expandable-icon { opacity: 1; }
+        .expandable-title { font-size: 16px; font-weight: 600; }
+        .expandable-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+            opacity: 0;
+        }
+        .expandable-card:hover .expandable-content {
+            max-height: 200px;
+            padding-top: 12px;
+            opacity: 1;
+        }
+        .expandable-content p { font-size: 14px; opacity: 0.75; line-height: 1.6; margin: 0; }
+        .expandable-card.collapsed {
+            padding: 12px 16px;
+            transform: scale(0.95);
+            opacity: 0.4;
+            max-width: 280px;
+        }
+        .expandable-card.near    { opacity: 0.8; max-width: 420px; }
+        .expandable-card.far     { opacity: 0.6; max-width: 360px; }
+        .expandable-card.farther { opacity: 0.5; max-width: 320px; }
+        .expandable-card.farthest{ opacity: 0.45; max-width: 300px; }
+        .expandable-card.active  { max-width: 500px; }
+        .expandable-card.collapsed .expandable-content { display: none; }
+        .expandable-card.collapsed .expandable-icon { width: 32px; height: 32px; font-size: 14px; }
+        .expandable-card.collapsed .expandable-title { font-size: 14px; }
+        .expandable-card:not(.active) .expandable-header { justify-content: center; }
+        .expandable-card:not(.active) .expandable-left  { gap: 0; }
+        .expandable-card:not(.active) .expandable-icon  { display: none; }
+
+        /* How it works */
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 26px;
+        }
+        .step { text-align: center; padding: 10px; }
+        .step .step-num {
+            width: 44px; height: 44px;
+            margin: 0 auto 18px auto;
+            border-radius: 50%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 17px;
+            color: var(--accent);
+        }
+        .step h4 { margin: 0 0 8px 0; font-size: 16px; }
+        .step p  { margin: 0; font-size: 14px; opacity: 0.7; line-height: 1.55; }
+
+        /* Popup replica */
+        .preview-wrap { display: flex; justify-content: center; }
+        .popup-replica {
+            width: 100%;
+            max-width: 360px;
+            background: rgba(20, 14, 40, 0.85);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border-radius: 26px;
+            padding: 26px 20px 30px 20px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.55), 0 0 0 1px rgba(124,58,237,0.15) inset;
+        }
+        .popup-replica h4 {
+            text-align: center;
+            font-size: 16px;
+            font-weight: 900;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.7);
+            margin: 6px 0 20px 0;
+            opacity: 0.9;
+        }
+        .popup-replica .counters { display: flex; gap: 12px; margin-bottom: 20px; }
+        .popup-replica .timer-box {
+            flex: 1;
+            background: rgba(0,0,0,0.25);
+            backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border);
+            border-radius: 18px;
+            padding: 14px 8px;
+            text-align: center;
+        }
+        .popup-replica .timer-box .t-label { font-size: 12px; margin-bottom: 6px; opacity: 0.85; }
+        .popup-replica .timer-box .t-value { font-size: 20px; font-weight: bold; letter-spacing: 1px; text-shadow: 0 2px 8px rgba(0,0,0,0.7); color: var(--accent); }
+        .popup-replica .buttons { display: flex; gap: 10px; justify-content: center; }
+        .popup-replica .buttons button {
+            font-family: inherit;
+            background: rgba(124,58,237,0.2);
+            backdrop-filter: blur(25px);
+            color: #fff;
+            border: 1px solid rgba(124,58,237,0.35);
+            padding: 10px 22px;
+            border-radius: 22px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .popup-replica .buttons button:hover { background: rgba(124,58,237,0.35); }
+
+        /* Inspector preview */
+        .inspector-preview {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px;
+            padding: 20px;
+            font-size: 13px;
+            max-width: 360px;
+            width: 100%;
+        }
+        .insp-header {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--accent);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding-bottom: 10px;
+            margin-bottom: 12px;
+        }
+        .insp-section { margin-bottom: 14px; }
+        .insp-section-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 6px;
+        }
+        .insp-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            gap: 8px;
+        }
+        .insp-key { color: rgba(255,255,255,0.55); }
+        .insp-val { color: #e2d9f3; font-weight: 600; text-align: right; }
+        .insp-swatch {
+            display: inline-block;
+            width: 10px; height: 10px;
+            border-radius: 2px;
+            vertical-align: middle;
+            margin-right: 4px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        /* Browser support grid */
+        .browser-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+        }
+        .browser-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px;
+            padding: 30px 20px;
+            text-align: center;
+            transition: transform 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+        }
+        .browser-card:hover {
+            transform: translateY(-6px);
+            background: rgba(255,255,255,0.07);
+            border-color: rgba(255,255,255,0.18);
+        }
+        .browser-icon {
+            font-size: 42px;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(99,102,241,0.2));
+            width: 70px; height: 70px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .browser-card h4 { margin: 0 0 8px 0; font-size: 16px; }
+        .browser-card p  { margin: 0; font-size: 13px; opacity: 0.7; }
+
+        /* CTA band */
+        .cta-band {
+            max-width: 900px;
+            margin: 0 auto 90px auto;
+            padding: 60px 40px;
+            border-radius: 28px;
+            background: linear-gradient(135deg, rgba(124,58,237,0.15), rgba(99,102,241,0.15));
+            border: 1px solid var(--glass-border);
+            text-align: center;
+        }
+        .cta-band h2 { margin: 0 0 14px 0; font-size: clamp(24px, 3.5vw, 32px); }
+        .cta-band p  { opacity: 0.8; margin: 0 0 30px 0; }
+
+        /* Chat Drawer */
+        .chat-drawer {
+            position: fixed;
+            top: 0; right: -500px;
+            width: 450px;
+            max-width: 90vw;
+            height: 100vh;
+            background: rgba(14, 10, 30, 0.97);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 1000;
+            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid var(--glass-border);
+            box-shadow: -10px 0 40px rgba(0,0,0,0.5);
+        }
+        .chat-drawer.open { right: 0; }
+        .chat-drawer-header {
+            padding: 20px 24px;
+            background: rgba(0,0,0,0.25);
+            backdrop-filter: blur(25px);
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .chat-drawer-header h3 { margin: 0; font-size: 18px; font-weight: 700; }
+        .close-chat {
+            background: rgba(0,0,0,0.25);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: white;
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        .close-chat:hover { background: rgba(0,0,0,0.45); transform: scale(1.05); }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .chat-message {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+        .chat-message.user {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            align-self: flex-end;
+            color: white;
+            box-shadow: 0 4px 12px rgba(124,58,237,0.3);
+        }
+        .chat-message.ai {
+            background: rgba(0,0,0,0.25);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255,255,255,0.15);
+            align-self: flex-start;
+            color: white;
+        }
+        .chat-message .sender { font-size: 11px; opacity: 0.7; margin-bottom: 4px; font-weight: 600; }
+        .chat-message code { background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+        .chat-message pre { background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; overflow: auto; margin: 8px 0; }
+        .chat-message pre code { background: transparent; padding: 0; }
+        .chat-message a { color: var(--accent); text-decoration: underline; }
+        .chat-message ul, .chat-message ol { margin: 8px 0; padding-left: 20px; }
+        .chat-message li { margin: 4px 0; }
+        .chat-input-container {
+            padding: 20px;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--glass-border);
+        }
+        .chat-input-wrapper {
+            background: rgba(0,0,0,0.25);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 26px;
+            padding: 8px;
+        }
+        .chat-input-wrapper .inner-wrapper {
+            background: rgba(255,255,255,0.05);
+            border-radius: 24px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+        }
+        .chat-textarea {
+            width: 100%;
+            min-height: 44px;
+            max-height: 150px;
+            padding: 12px 50px 12px 16px;
+            border: none;
+            background: transparent;
+            resize: none;
+            outline: none;
+            font-family: 'Varela Round', sans-serif;
+            font-size: 15px;
+            color: #fff;
+            line-height: 1.4;
+        }
+        .chat-textarea::placeholder { color: rgba(255,255,255,0.45); }
+        .chat-send-btn {
+            position: absolute;
+            right: 8px; bottom: 8px;
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(124,58,237,0.4);
+        }
+        .chat-send-btn:hover { transform: scale(1.05); }
+        .chat-send-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .chat-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+        .chat-overlay.open { opacity: 1; pointer-events: auto; }
+
+        footer {
+            text-align: center;
+            padding: 40px 24px 60px 24px;
+            opacity: 0.55;
+            font-size: 13px;
+        }
+        footer a { text-decoration: underline; }
+
+        @media (max-width: 520px) {
+            .hero-ctas { flex-direction: column; width: 100%; }
+            .btn { width: 100%; justify-content: center; }
+            .mini-popup { flex-direction: column; }
+            .mini-divider { width: 100%; height: 1px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title">Inspect any element.<br><span>Skip the DevTools.</span></h1>
+            <p class="hero-sub">You opened DevTools just to check a font size. Now you're three panels deep, lost in the computed styles tab, and forgot what you were looking for. We fixed that. UI FACECARD puts tag names, colors, fonts, box model, and spacing directly on the page — one click, zero tab-switching.</p>
+
+            <div class="hero-ctas">
+                <a href="#get-started" class="btn btn-primary"><i class="fa-brands fa-chrome"></i> Add to Chrome</a>
+                <a href="#features" class="btn btn-ghost"><i class="fa-solid fa-arrow-down"></i> See what it does</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section id="features">
+        <div class="section-eyebrow">Features</div>
+        <h2 class="section-title">Built for faster UI work</h2>
+        <p class="section-sub">Every feature exists for one reason: to shorten the distance between "I need to check this element" and "got it, moving on."</p>
+
+        <div style="max-width: 500px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
+
+            <div class="expandable-card">
+                <div class="expandable-header">
+                    <div class="expandable-left">
+                        <div class="expandable-icon"><i class="fa-solid fa-crosshairs"></i></div>
+                        <div class="expandable-title">Live element targeting</div>
+                    </div>
+                </div>
+                <div class="expandable-content">
+                    <p>Hover over any element to highlight it with measurement crosshairs. Click to lock the selection and pin its full details in the side drawer.</p>
+                </div>
+            </div>
+
+            <div class="expandable-card">
+                <div class="expandable-header">
+                    <div class="expandable-left">
+                        <div class="expandable-icon"><i class="fa-solid fa-ruler-combined"></i></div>
+                        <div class="expandable-title">Measurement lines</div>
+                    </div>
+                </div>
+                <div class="expandable-content">
+                    <p>On-screen crosshair lines show the exact pixel distance from the selected element to all four viewport edges — top, right, bottom, and left — with labelled values.</p>
+                </div>
+            </div>
+
+            <div class="expandable-card">
+                <div class="expandable-header">
+                    <div class="expandable-left">
+                        <div class="expandable-icon"><i class="fa-solid fa-palette"></i></div>
+                        <div class="expandable-title">Color &amp; typography</div>
+                    </div>
+                </div>
+                <div class="expandable-content">
+                    <p>Background and text colors shown with live swatches. Font family, weight, and size surfaced instantly so you can compare the live page against your design specs.</p>
+                </div>
+            </div>
+
+            <div class="expandable-card">
+                <div class="expandable-header">
+                    <div class="expandable-left">
+                        <div class="expandable-icon"><i class="fa-solid fa-box-open"></i></div>
+                        <div class="expandable-title">Box model preview</div>
+                    </div>
+                </div>
+                <div class="expandable-content">
+                    <p>A browser-style diagram shows the margin, border, padding, and content area for every selected element — the exact view you'd get in DevTools, but right on the page.</p>
+                </div>
+            </div>
+
+            <div class="expandable-card">
+                <div class="expandable-header">
+                    <div class="expandable-left">
+                        <div class="expandable-icon"><i class="fa-solid fa-copy"></i></div>
+                        <div class="expandable-title">One-click copy</div>
+                    </div>
+                </div>
+                <div class="expandable-content">
+                    <p>Click any property in the drawer to copy its value straight to the clipboard. Speeds up debugging, design-to-dev handoff, and anything else that involves copy-pasting CSS values.</p>
+                </div>
+            </div>
+
+            <div class="expandable-card">
+                <div class="expandable-header">
+                    <div class="expandable-left">
+                        <div class="expandable-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                        <div class="expandable-title">Private by design</div>
+                    </div>
+                </div>
+                <div class="expandable-content">
+                    <p>No accounts, no servers, no data collection. The extension runs entirely in your browser and never sends anything anywhere.</p>
+                </div>
+            </div>
+
+            <div class="expandable-card" onclick="openChatDrawer()">
+                <div class="expandable-header">
+                    <div class="expandable-left">
+                        <div class="expandable-icon"><i class="fa-solid fa-robot"></i></div>
+                        <div class="expandable-title">AI Assistant</div>
+                    </div>
+                </div>
+                <div class="expandable-content">
+                    <p>Got a question about what a CSS value does, or how to replicate a style? Ask the AI assistant — it knows the extension and frontend development inside out.</p>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- How it works -->
+    <section>
+        <div class="section-eyebrow">How it works</div>
+        <h2 class="section-title">Three steps to inspect anything</h2>
+        <p class="section-sub">Install once, use on every site. No sign-up, no config, no tab-switching.</p>
+        <div class="steps">
+            <div class="step">
+                <div class="step-num">1</div>
+                <h4>Install the extension</h4>
+                <p>Add UI FACECARD to Chrome in a few seconds — no account required.</p>
+            </div>
+            <div class="step">
+                <div class="step-num">2</div>
+                <h4>Toggle the debugger</h4>
+                <p>Click the extension icon and hit "Toggle UI Debugger" to activate the overlay on any page.</p>
+            </div>
+            <div class="step">
+                <div class="step-num">3</div>
+                <h4>Click any element</h4>
+                <p>Hover to highlight and measure, click to pin. All details appear in the side drawer — copy what you need and move on.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Preview -->
+    <section>
+        <div class="section-eyebrow">Take a look</div>
+        <h2 class="section-title">The inspector, at a glance</h2>
+        <p class="section-sub">The side drawer organises element data into clear sections — Basic, Appearance, Media, and Box Model — so the property you need is always where you expect it.</p>
+        <div class="preview-wrap">
+            <div class="inspector-preview">
+                <div class="insp-header">Selected Element</div>
+                <div class="insp-section">
+                    <div class="insp-section-label">Basic</div>
+                    <div class="insp-row"><span class="insp-key">Tag</span><span class="insp-val">DIV</span></div>
+                    <div class="insp-row"><span class="insp-key">ID</span><span class="insp-val">hero-block</span></div>
+                    <div class="insp-row"><span class="insp-key">Class</span><span class="insp-val">section wrapper</span></div>
+                    <div class="insp-row"><span class="insp-key">Size</span><span class="insp-val">900 × 480px</span></div>
+                    <div class="insp-row"><span class="insp-key">Position</span><span class="insp-val">relative</span></div>
+                </div>
+                <div class="insp-section">
+                    <div class="insp-section-label">Appearance</div>
+                    <div class="insp-row"><span class="insp-key">Background</span><span class="insp-val"><span class="insp-swatch" style="background:#7c3aed;"></span>#7c3aed</span></div>
+                    <div class="insp-row"><span class="insp-key">Text Color</span><span class="insp-val"><span class="insp-swatch" style="background:#fff;"></span>#ffffff</span></div>
+                    <div class="insp-row"><span class="insp-key">Font</span><span class="insp-val">Inter, sans-serif</span></div>
+                    <div class="insp-row"><span class="insp-key">Font Size</span><span class="insp-val">16px / 700</span></div>
+                </div>
+                <div class="insp-section">
+                    <div class="insp-section-label">Box Model</div>
+                    <div class="insp-row"><span class="insp-key">Margin</span><span class="insp-val">0 0 24px 0</span></div>
+                    <div class="insp-row"><span class="insp-key">Padding</span><span class="insp-val">48px 64px</span></div>
+                    <div class="insp-row"><span class="insp-key">Border</span><span class="insp-val">1px solid rgba(…)</span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Popup replica -->
+    <section>
+        <div class="section-eyebrow">The popup</div>
+        <h2 class="section-title">Everything in the toolbar</h2>
+        <p class="section-sub">Click the extension icon on any tab to open the popup. One button toggles the overlay on and off — no menus, no settings to dig through.</p>
+        <div class="preview-wrap">
+            <div class="popup-replica">
+                <h4>UI FACECARD · Quick controls</h4>
+                <div class="counters">
+                    <div class="timer-box">
+                        <div class="t-label">Debugger Status</div>
+                        <div class="t-value" style="font-size:15px;letter-spacing:0;">Inactive</div>
+                    </div>
+                    <div class="timer-box">
+                        <div class="t-label">Active Page</div>
+                        <div class="t-value" style="font-size:13px;letter-spacing:0;opacity:0.75;">yoursite.com</div>
+                    </div>
+                </div>
+                <div class="buttons">
+                    <button onclick="this.textContent=this.textContent==='Toggle Debugger'?'✓ Active':'Toggle Debugger'">Toggle Debugger</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Browser support -->
+    <section>
+        <div class="section-eyebrow">Browser Support</div>
+        <h2 class="section-title">Works on all Chromium browsers</h2>
+        <p class="section-sub">UI FACECARD is a Chrome extension but it runs on any Chromium-based browser — install it once, inspect everywhere.</p>
+        <div class="browser-grid">
+            <div class="browser-card">
+                <div class="browser-icon"><i class="fa-brands fa-chrome"></i></div>
+                <h4>Google Chrome</h4>
+                <p>Full support</p>
+            </div>
+            <div class="browser-card">
+                <div class="browser-icon"><i class="fa-brands fa-edge"></i></div>
+                <h4>Microsoft Edge</h4>
+                <p>Full support</p>
+            </div>
+            <div class="browser-card">
+                <div class="browser-icon"><i class="fa-brands fa-brave"></i></div>
+                <h4>Brave</h4>
+                <p>Full support</p>
+            </div>
+            <div class="browser-card">
+                <div class="browser-icon"><i class="fa-brands fa-opera"></i></div>
+                <h4>Opera</h4>
+                <p>Full support</p>
+            </div>
+            <div class="browser-card">
+                <div class="browser-icon"><i class="fa-solid fa-ghost"></i></div>
+                <h4>Other Chromium</h4>
+                <p>Compatible</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section id="get-started" style="padding-top: 0;">
+        <div class="cta-band">
+            <h2>Ready to inspect smarter?</h2>
+            <p>Add UI FACECARD to Chrome in under a minute — free, offline, no account needed.</p>
+            <a href="https://github.com" target="_blank" class="btn btn-primary"><i class="fa-brands fa-github"></i> Get it on GitHub</a>
+        </div>
+    </section>
+
+    <footer>
+        <p>UI FACECARD — an open-source Chrome extension. Licensed under MIT.</p>
+    </footer>
+
+    <!-- Chat overlay -->
+    <div class="chat-overlay" id="chatOverlay" onclick="closeChatDrawer()"></div>
+
+    <!-- Chat drawer -->
+    <div class="chat-drawer" id="chatDrawer">
+        <div class="chat-drawer-header">
+            <h3><i class="fa-solid fa-robot"></i>&nbsp; AI Assistant</h3>
+            <button class="close-chat" onclick="closeChatDrawer()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="chat-message ai">
+                <div class="sender">AI Assistant</div>
+                <div class="message-text">Hi! I'm your UI FACECARD assistant. Ask me anything about the extension, CSS properties, or frontend debugging.</div>
+            </div>
+        </div>
+        <div class="chat-input-container">
+            <div class="chat-input-wrapper">
+                <div class="inner-wrapper">
+                    <textarea class="chat-textarea" id="chatInput" placeholder="Message AI Assistant..." rows="1"></textarea>
+                    <button class="chat-send-btn" id="chatSendBtn" onclick="sendMessage()">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Expandable cards stagger
+        const cards = document.querySelectorAll('.expandable-card');
+
+        function setCardActive(activeIndex) {
+            cards.forEach((card, i) => {
+                const d = Math.abs(activeIndex - i);
+                card.classList.remove('active', 'near', 'far', 'farther', 'farthest', 'collapsed');
+                if      (d === 0) card.classList.add('active');
+                else if (d === 1) card.classList.add('near');
+                else if (d === 2) card.classList.add('far');
+                else if (d === 3) card.classList.add('farther');
+                else if (d === 4) card.classList.add('farthest');
+                else              card.classList.add('collapsed');
+            });
+        }
+
+        setCardActive(0);
+
+        cards.forEach((card, i) => {
+            card.addEventListener('mouseenter', () => setCardActive(i));
+            card.addEventListener('mouseleave', () => setCardActive(0));
+        });
+
+        // Chat drawer
+        function openChatDrawer() {
+            document.getElementById('chatDrawer').classList.add('open');
+            document.getElementById('chatOverlay').classList.add('open');
+            document.getElementById('chatInput').focus();
+        }
+        function closeChatDrawer() {
+            document.getElementById('chatDrawer').classList.remove('open');
+            document.getElementById('chatOverlay').classList.remove('open');
+        }
+
+        const chatInput   = document.getElementById('chatInput');
+        const chatSendBtn = document.getElementById('chatSendBtn');
+        const chatMessages= document.getElementById('chatMessages');
+
+        chatInput.addEventListener('input', function () {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 150) + 'px';
+        });
+        chatInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+        });
+
+        function addMessage(text, sender, isStreaming = false) {
+            const id  = 'msg-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+            const div = document.createElement('div');
+            div.className = 'chat-message ' + sender;
+            div.id = id;
+
+            const senderDiv = document.createElement('div');
+            senderDiv.className = 'sender';
+            senderDiv.textContent = sender === 'user' ? 'You' : 'AI Assistant';
+
+            const textDiv = document.createElement('div');
+            textDiv.className = 'message-text';
+
+            if (isStreaming && !text) {
+                textDiv.innerHTML = '<span style="opacity:0.5;">Thinking…</span>';
+            } else if (sender === 'ai' && typeof marked !== 'undefined') {
+                textDiv.innerHTML = marked.parse(text);
+            } else {
+                textDiv.textContent = text;
+            }
+
+            div.appendChild(senderDiv);
+            div.appendChild(textDiv);
+            chatMessages.appendChild(div);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return id;
+        }
+
+        function updateMessage(id, text) {
+            const div     = document.getElementById(id);
+            if (!div) return;
+            const textDiv = div.querySelector('.message-text');
+            if (!textDiv) return;
+            if (typeof marked !== 'undefined') {
+                textDiv.innerHTML = marked.parse(text);
+            } else {
+                textDiv.textContent = text;
+            }
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            addMessage(message, 'user');
+            chatInput.value = '';
+            chatInput.style.height = 'auto';
+
+            const aiId = addMessage('', 'ai', true);
+            chatSendBtn.disabled = true;
+
+            try {
+                const res = await fetch('https://text.pollinations.ai/openai', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model: 'openai',
+                        stream: true,
+                        messages: [
+                            {
+                                role: 'system',
+                                content: 'You are a helpful assistant for the UI FACECARD Chrome extension — a tool for inspecting UI elements without opening DevTools. Help users with CSS questions, frontend debugging, and using the extension.'
+                            },
+                            { role: 'user', content: message }
+                        ]
+                    })
+                });
+
+                if (!res.ok) throw new Error('API error');
+
+                const reader  = res.body.getReader();
+                const decoder = new TextDecoder();
+                let full = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    const chunk = decoder.decode(value);
+                    chunk.split('\n').forEach(line => {
+                        if (!line.startsWith('data:')) return;
+                        const data = line.replace('data:', '').trim();
+                        if (data === '[DONE]') return;
+                        try {
+                            const json    = JSON.parse(data);
+                            const content = json.choices?.[0]?.delta?.content;
+                            if (content) { full += content; updateMessage(aiId, full); }
+                        } catch (e) {}
+                    });
+                }
+
+                updateMessage(aiId, full || 'No response received.');
+            } catch (err) {
+                updateMessage(aiId, "Sorry, I couldn't reach the AI service. Please try again.");
+            }
+
+            chatSendBtn.disabled = false;
+        }
+    </script>
+
+
+
+</body></html>

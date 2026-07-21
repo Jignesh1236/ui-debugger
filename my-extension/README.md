@@ -12,11 +12,17 @@ UI FACECARD is a Chrome extension designed for quick UI inspection and layout de
 - Highlights element positions with on-screen measurement lines and labels for top, right, bottom, and left distances.
 - Supports quick copying of values by clicking on any displayed property, which is useful for debugging and handoff workflows.
 - Includes a polished popup interface with a toggle button to turn the debugger on or off from the browser toolbar.
-- Designed as a lightweight developer tool for designers, frontend developers, and anyone who wants to inspect webpage structure faster.
+- Designed as a lightweight developer tool for designers, frontend developers, and anyone who wants to inspect    webpage structure faster.
 
 ## Author
 UI FACECARD
 - [Project Repository](https://github.com)
+
+## Socials
+- [Instagram](https://www.instagram.com/p/DbDk4stiNgT/)
+- [Reddit Hackathon](https://www.reddit.com/r/hackathon/s/ce4ez1R6nm)
+- [Reddit Hackathon Post](https://www.reddit.com/r/hackathon/s/T5fOpdTqZZ)
+- [Reddit Hackathon Update](https://www.reddit.com/r/hackathon/s/rSbwFyKMhX)
 
 ## Requirements
 ### Knowledge
