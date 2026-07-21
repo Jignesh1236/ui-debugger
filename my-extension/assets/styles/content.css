@@ -32,7 +32,7 @@
 /* Overlay Box for Width/Height */
 #debugger-overlay {
     position: fixed;
-    background: #111827;
+    background: #000000;
     color: #f9fafb;
     padding: 6px 8px;
     border-radius: 6px;
@@ -52,7 +52,13 @@
     right: 0;
     width: 280px;
     height: 100vh;
-    background: #111827;
+    /* Background image for the drawer. Keep a fallback color and ensure
+       the image displays correctly across environments. */
+    background-image: url(../images/s.jpg);
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: #000000; /* fallback if image fails to load */
     color: #f9fafb;
     transform: translateX(100%);
     transition: transform 0.2s ease;
@@ -76,10 +82,7 @@
 
 .debugger-drawer-toggle {
     border: none;
-    background-image: url(../images/drawer-toggle.png);
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+    background: #000000;
     color: white;
     border-radius: 4px;
     padding: 4px 8px;
